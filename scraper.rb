@@ -1,43 +1,40 @@
 #encoding: utf-8
-
-# This is a template for a Ruby scraper on morph.io (https://morph.io)
-# including some code snippets below that you should find helpful
-
 require 'scraperwiki'
 require 'nokogiri'
 
 # Read in a page
-url = "https://docs.google.com/spreadsheets/d/1QkkIRF-3Qrz-aRIxERbGbB7YHWz2-t4ix-7TEcuBNfE/pubhtml?gid=1823583981&single=true"
+url = "https://docs.google.com/spreadsheets/d/1QkkIRF-3Qrz-aRIxERbGbB7YHWz2-t4ix-7TEcuBNfE/pubhtml?gid=607896942&single=true"
 page = Nokogiri::HTML(open(url), nil, 'utf-8')
 rows = page.xpath('//table[@class="waffle"]/tbody/tr')
 
-# Find somehing on the page using css selectors
+# Find something on the page using css selectors
 content = []
 rows.collect do |r|
   content << r.xpath('td').map { |td| td.text.strip }
 end
 
+# Builds records
 content.shift
 content.each do |row|
   record = {
-    "uid" => row[0],
-    "category" => row[1],
-    "promess" => row[2],
-    "description" => row[3],
-    "quality" => row[4],
-    "fulfillment" => row[5],
-    "ponderator" => row[6],
+    "date" => row[0],
+    "title" => row[1],
+    "summary" => row[2],
+    "source" => row[3],
+    "img" => row[4],
+    "highlighted" => row[5],
     "last_update" => Date.today.to_s
   }
-  ScraperWiki.save_sqlite(["uid"], record)
-  puts "Adds new record " + record['uid']
+
+  # Save if the record doesn't exist
+  if ((ScraperWiki.select("* from data where `source`='#{record['source']}'").empty?) rescue true)
+    ScraperWiki.save_sqlite(["source"], record)
+    puts "Adds new record from " + record['source']
+  else
+    puts "Skipping already saved record from " + record['source']
+  end
 end
 
-# p page.at('div.content')
-#
-# # Write out to the sqlite database using scraperwiki library
-# ScraperWiki.save_sqlite(["name"], {"name" => "susan", "occupation" => "software developer"})
-#
 # # An arbitrary query against the database
 # ScraperWiki.select("* from data where 'name'='peter'")
 
