@@ -3,7 +3,7 @@ require 'scraperwiki'
 require 'nokogiri'
 
 # Read in a page
-url = "https://docs.google.com/spreadsheets/d/1QkkIRF-3Qrz-aRIxERbGbB7YHWz2-t4ix-7TEcuBNfE/pubhtml?gid=607896942&single=true"
+url = "https://docs.google.com/spreadsheets/d/1cfC1bsNoTvNC6YSNIyTqLpQkEMTvrGavS_EmJL6HdH8/pubhtml?gid=1424272470&single=true"
 page = Nokogiri::HTML(open(url), nil, 'utf-8')
 rows = page.xpath('//table[@class="waffle"]/tbody/tr')
 
@@ -14,24 +14,24 @@ rows.collect do |r|
 end
 
 # Builds records
-content.shift
+content.shift(2)
 content.each do |row|
   record = {
     "date" => row[0],
-    "title" => row[1],
-    "summary" => row[2],
-    "source" => row[3],
-    "img" => row[4],
-    "highlighted" => row[5],
+    "cat01" => if row[1].empty? then '0' else row[1] end,
+    "cat02" => if row[2].empty? then '0' else row[2] end,
+    "cat03" => if row[3].empty? then '0' else row[3] end,
+    "cat04" => if row[4].empty? then '0' else row[4] end,
+    "cat05" => if row[5].empty? then '0' else row[5] end,
     "last_update" => Date.today.to_s
   }
 
   # Save if the record doesn't exist
-  if ((ScraperWiki.select("* from data where `source`='#{record['source']}'").empty?) rescue true)
-    ScraperWiki.save_sqlite(["source"], record)
-    puts "Adds new record from " + record['source']
+  if ((ScraperWiki.select("* from data where `source`='#{record['date']}'").empty?) rescue true)
+    ScraperWiki.save_sqlite(["date"], record)
+    puts "Adds new record with timestamp " + record['date']
   else
-    puts "Skipping already saved record from " + record['source']
+    puts "Skipping already saved record from " + record['date']
   end
 end
 
